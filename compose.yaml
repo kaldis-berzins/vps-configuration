@@ -1,0 +1,42 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.6
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    ports:
+    # HTTP
+      - "80:80"
+    # HTTPS
+      - "443:443"
+    # Traefik Web UI
+      - "8080:8080"
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+  server:
+    image: ghcr.io/kaldis-berzins/cv-website:main
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cv-website.rule=Host(`kaldisberzins.com`)"
+      - "traefik.http.routers.cv-website.entrypoints=websecure"
+      - "traefik.http.routers.cv-website.tls.certresolver=myresolver"
+  obsidian-livesync:
+    image: couchdb:3.1.2
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - ./data/couchdb:/opt/couchdb/data
+      - ./conf/local.ini:/opt/couchdb/etc/local.ini
+      - ./local.d:/opt/couchdb/etc/local.d
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.obsidian.rule=Host(`obsidian.kaldisberzins.com`)"
+      - "traefik.http.routers.obsidian.entrypoints=websecure"
+      - "traefik.http.routers.obsidian.tls.certresolver=myresolver"
+      - "traefik.http.services.obsidian.loadbalancer.server.port=5984"
+volumes:
+  letsencrypt:
