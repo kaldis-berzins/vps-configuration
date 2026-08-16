@@ -21,6 +21,7 @@ services:
       - "traefik.http.routers.cv-website.rule=Host(`kaldisberzins.com`)"
       - "traefik.http.routers.cv-website.entrypoints=websecure"
       - "traefik.http.routers.cv-website.tls.certresolver=myresolver"
+      - "traefik.http.services.cv-website.loadbalancer.server.port=3000"
   obsidian-livesync:
     image: couchdb:3.1.2
     ports:
@@ -54,15 +55,14 @@ services:
       timeout: 5s
       retries: 10
 
-  app:
+  tmcdb:
     image: ghcr.io/kaldis-berzins/tmcdb:master
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cv-website.rule=Host(`tmcdb.kaldisberzins.com`)"
-      - "traefik.http.routers.cv-website.entrypoints=websecure"
-      - "traefik.http.routers.cv-website.tls.certresolver=myresolver"
-    ports:
-      - "3001:3001"
+      - "traefik.http.routers.tmcdb.rule=Host(`tmcdb.kaldisberzins.com`)"
+      - "traefik.http.routers.tmcdb.entrypoints=websecure"
+      - "traefik.http.routers.tmcdb.tls.certresolver=myresolver"
+      - "traefik.http.services.tmcdb.loadbalancer.server.port=3001"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/tmcdb?schema=public
       NODE_ENV: production
