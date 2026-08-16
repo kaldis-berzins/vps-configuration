@@ -38,5 +38,17 @@ services:
       - "traefik.http.routers.obsidian.entrypoints=websecure"
       - "traefik.http.routers.obsidian.tls.certresolver=myresolver"
       - "traefik.http.services.obsidian.loadbalancer.server.port=5984"
+  tmcdb-postgres:
+    image: postgres:16
+    container_name: tmcdb-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: tmcdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
 volumes:
   letsencrypt:
