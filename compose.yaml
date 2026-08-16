@@ -74,3 +74,4 @@ services:
         condition: service_healthy
 volumes:
   letsencrypt:
+  postgres_data:
