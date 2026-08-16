@@ -38,10 +38,8 @@ services:
       - "traefik.http.routers.obsidian.entrypoints=websecure"
       - "traefik.http.routers.obsidian.tls.certresolver=myresolver"
       - "traefik.http.services.obsidian.loadbalancer.server.port=5984"
-  tmcdb-postgres:
+  db:
     image: postgres:16
-    container_name: tmcdb-postgres
-    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -49,6 +47,30 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d tmcdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ghcr.io/kaldis-berzins/tmcdb:master
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cv-website.rule=Host(`tmcdb.kaldisberzins.com`)"
+      - "traefik.http.routers.cv-website.entrypoints=websecure"
+      - "traefik.http.routers.cv-website.tls.certresolver=myresolver"
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/tmcdb?schema=public
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   letsencrypt:
