@@ -62,11 +62,11 @@ services:
       - "traefik.http.routers.cv-website.entrypoints=websecure"
       - "traefik.http.routers.cv-website.tls.certresolver=myresolver"
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/tmcdb?schema=public
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3001
       HOST: 0.0.0.0
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
